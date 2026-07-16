@@ -716,7 +716,7 @@
       <a href="#pricing">Pricing</a>
       <a class="cta" id="navCta">Track a wallet</a>
     </div>
-    <div class="nb-right"><button class="btn gh sm" id="navDemo">Live demo</button></div>
+    <div class="nb-right"></div>
   </nav>
 
   <header class="hero">
@@ -726,14 +726,17 @@
         <input id="addrIn" placeholder="Paste a Monad address or name" spellcheck="false" autocomplete="off" />
         <button class="btn" type="submit">Track wallet</button>
       </form>
-      <div class="try">No signup. No wallet connection. Try one: <button type="button" id="demo">0x7a3f&hellip;c2e1</button></div>
+      <div class="try">No signup. No wallet connection. Read-only, always.</div>
     </div>
 
     <div class="stage">
-      <div class="onecard" id="onecard">
-        <div class="oc-tabs" id="ocTabs"></div>
-        <div class="oc-body" id="ocBody"></div>
-        <div class="oc-bar"><i id="ocBar"></i></div>
+      <div class="onecard" aria-hidden="true">
+        <div class="oc-body">
+          <div class="oc-lbl">Net worth</div>
+          <div class="oc-big" style="opacity:.35">$ &mdash;</div>
+          <div class="oc-sub">paste an address to see it live</div>
+          <div style="margin-top:14px" id="heroRows"></div>
+        </div>
       </div>
     </div>
   </header>
@@ -822,6 +825,14 @@
         <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8h3l2-4.5L9 12.5l2-4.5h3.5"/></svg>
         Activity
       </button>
+      <button class="nav-i" data-p="nfts">
+        <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.8" y="1.8" width="12.4" height="12.4" rx="2"/><path d="M1.8 10.5l3.4-3.2 3 2.8 2.3-2 3.7 3.4"/><circle cx="5.9" cy="5.4" r="1.1"/></svg>
+        NFTs
+      </button>
+      <button class="nav-i" data-p="rewards">
+        <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.6l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.4l-3.8 2 .7-4.3-3.1-3 4.3-.6L8 1.6z"/></svg>
+        Rewards
+      </button>
 
 </aside>
 
@@ -856,7 +867,7 @@
                 </div>
               </div>
               <div class="nw-row">
-                <div class="nw" id="nwVal">$48,120.44</div>
+                <div class="nw" id="nwVal">$0.00</div>
                 <div class="delta up" id="nwDelta">+2.41%</div>
               </div>
               <div class="excl">
@@ -950,37 +961,17 @@
         </section>
 
         <!-- ---------------- TRADES ---------------- -->
-        <section class="page" id="p-trades">
-          <div class="cols c-3" style="margin-bottom:14px">
-            <div class="g pad tile"><div class="k">Open trades</div><div class="v">3</div><div class="m">2 venues</div></div>
-            <div class="g pad tile"><div class="k">Notional</div><div class="v">$14,100</div><div class="m">across MON, ETH, BTC</div></div>
-            <div class="g pad tile"><div class="k">Unrealised</div><div class="v good" id="tPnl">+$972.70</div><div class="m">marked live</div></div>
-          </div>
-          <div class="g pad">
-            <div class="hd"><h3>Open positions</h3><div class="sp"></div>
-              <div class="filters" id="trFilters">
-                <button class="chip" data-f="all" aria-pressed="true">All</button>
-                <button class="chip" data-f="LONG" aria-pressed="false">Long</button>
-                <button class="chip" data-f="SHORT" aria-pressed="false">Short</button>
-              </div>
-            </div>
-            <table class="tbl"><thead><tr>
-              <th>Market</th><th class="hide-m">Side</th><th class="r hide-m">Size</th>
-              <th class="r hide-m">Entry</th><th class="r hide-m">Mark</th><th class="r">PnL</th>
-            </tr></thead><tbody id="trAll"></tbody></table>
-          </div>
-        </section>
 
         <!-- ---------------- NFTS ---------------- -->
         <section class="page" id="p-nfts">
           <div class="g pad" style="margin-bottom:14px">
             <div class="hd"><h3>Collectibles</h3><div class="sp"></div>
-              <div class="filters" id="nfFilters">
+              <div class="filters" id="nfFilters" style="display:none">
                 <button class="chip" data-f="all" aria-pressed="true">All</button>
                 <button class="chip" data-f="valued" aria-pressed="false">Has a real bid</button>
               </div>
             </div>
-            <p style="margin:0 0 4px;color:var(--ink-mid);font-size:13px">Valued at the <b>best collection bid</b>, not the floor. A floor is an asking price that nobody has agreed to pay, so trackers that value your NFTs at floor are inflating your net worth. Collectibles are kept out of the headline number.</p>
+            <p style="margin:0 0 4px;color:var(--ink-mid);font-size:13px">NFTs held by this wallet, read from chain and verified by current ownership. Values need a marketplace source, so they are shown without a price rather than an invented floor.</p>
           </div>
           <div class="cols c-3" id="nftGrid"></div>
         </section>
@@ -989,9 +980,9 @@
         <section class="page" id="p-rewards">
           <div class="g pad" style="margin-bottom:14px">
             <div class="hd"><h3>Claimable</h3><div class="sp"></div>
-              <div style="text-align:right"><div style="font-family:var(--mono);font-size:19px;color:var(--safe)">$412.38</div><div class="sec">across 4 protocols</div></div>
+              <div style="text-align:right"><div style="font-family:var(--mono);font-size:19px;color:var(--safe)" id="rwCount">&mdash;</div><div class="sec">claimable</div></div>
             </div>
-            <p style="margin:0;color:var(--ink-mid);font-size:13px">MonScope shows what is owed to you and where to claim it. It will never claim on your behalf, because that needs a signature, and this app never asks for one.</p>
+            <p style="margin:0;color:var(--ink-mid);font-size:13px">Claimable rewards read from chain. MonScope never claims on your behalf, because that needs a signature, and this app never asks for one.</p>
           </div>
           <div class="g pad">
             <table class="tbl"><thead><tr>
@@ -1027,85 +1018,10 @@
         </section>
 
         <!-- ---------------- RISK ---------------- -->
-        <section class="page" id="p-risk">
-          <div class="lab">
-            <div class="g pad">
-              <div class="k" style="font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.11em;color:var(--ink-soft)">MON price</div>
-              <div class="px" id="pxNow">$0.02225</div>
-              <div id="pxDelta" style="font-family:var(--mono);font-size:12.5px;color:var(--ink-soft)">spot</div>
-              <input type="range" id="px" min="-70" max="40" value="0" step="1" style="margin:16px 0 4px" aria-label="Simulate MON price" />
-              <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-bottom:14px">
-                <span>-70%</span><span>spot</span><span>+40%</span>
-              </div>
-              <button class="btn gh sm" id="pxReset" style="width:100%;margin-bottom:16px">Reset to spot</button>
-              <div class="vd" id="vd">
-                <div class="k">Whole-book liquidation price</div>
-                <div class="v" id="vdV">MON $0.0164 (-26%)</div>
-              </div>
-              <p style="font-size:12px;color:var(--ink-soft);margin:12px 0 0">No other tracker gives you this. It needs every protocol read at once, plus the knowledge that the collateral is the same asset.</p>
-            </div>
-            <div>
-              <div id="ladder"></div>
-              <p style="font-size:12px;color:var(--ink-soft);margin-top:12px">Ordered by proximity to liquidation. <span style="color:var(--accent)">Purple</span> marks protocols no competing tracker covers on Monad.</p>
-            </div>
-          </div>
-        </section>
 
         <!-- ---------------- XRAY ---------------- -->
-        <section class="page" id="p-xray">
-          <div class="g pad" style="margin-bottom:14px">
-            <div class="hd">
-              <div class="as">
-                <div class="av" style="background:linear-gradient(135deg,#836EF9,#A0055D)">K3</div>
-                <div><div class="nm">K3 Capital Vault <span class="t nat">see-through</span></div>
-                <div class="sb">ERC-4626 &middot; 45,000 shares</div></div>
-              </div>
-              <div class="sp"></div>
-              <div style="text-align:right"><div style="font-family:var(--mono);font-size:17px">$12,340.00</div><div class="sec">6.1% APY</div></div>
-            </div>
-            <p style="color:var(--ink-mid);font-size:13px;margin:0 0 14px">Every other tracker shows this as one inert ERC-20. It is not inert. It is levered lending exposure, and here is what the curator actually did with your money.</p>
-            <div class="xbar">
-              <div style="width:61%;background:#836EF9">61% Euler</div>
-              <div style="width:24%;background:#A0055D">24% Morpho</div>
-              <div style="width:15%;background:#3E3663">15% idle</div>
-            </div>
-            <div class="lg" style="margin-top:14px">
-              <div class="lg-i"><span class="sw" style="background:#836EF9"></span><span>Euler V2, USDC market lent against MON collateral</span><span class="a">$7,527</span></div>
-              <div class="lg-i"><span class="sw" style="background:#A0055D"></span><span>Morpho Blue, MON/USDC market at 86% LLTV</span><span class="a">$2,962</span></div>
-              <div class="lg-i"><span class="sw" style="background:#3E3663"></span><span>Idle USDC, not deployed</span><span class="a">$1,851</span></div>
-            </div>
-          </div>
-          <div class="cols c-2">
-            <div class="g pad" style="border-color:var(--warn)">
-              <div class="hd"><h3 style="color:var(--warn)">Your real MON exposure is higher than it looks</h3></div>
-              <p style="margin:0;color:var(--ink-mid);font-size:13px">You think you hold $12,340 of a stablecoin vault. In truth 85% of it is lent against <b>MON collateral</b>, the same asset securing your other five loans. A sharp MON drawdown hits your vault yield and your health factor at the same time. MonScope folds this into the liquidation price on the Risk tab.</p>
-            </div>
-            <div class="g pad">
-              <div class="hd"><h3>Why your net worth here is lower than elsewhere</h3></div>
-              <p style="margin:0;color:var(--ink-mid);font-size:13px">A naive tracker reads your K3 share <em>and</em> the underlying Euler position, and counts the same dollar twice. MonScope resolves the vault to its underlying before summing. Our number is smaller, and correct.</p>
-            </div>
-          </div>
-        </section>
 
         <!-- ---------------- ALERTS ---------------- -->
-        <section class="page" id="p-alerts">
-          <div class="cols c-2">
-            <div class="g pad">
-              <div class="hd"><h3>Alert rules</h3></div>
-              <div class="arow"><div class="g2"><div class="t2">Liquidation warning</div><div class="s2">Ping me when any position drops below health 1.30</div></div><div class="sw2" role="switch" aria-checked="true" tabindex="0"></div></div>
-              <div class="arow"><div class="g2"><div class="t2">Whole-book price alarm</div><div class="s2">Ping me when MON comes within 10% of $0.0164</div></div><div class="sw2" role="switch" aria-checked="true" tabindex="0"></div></div>
-              <div class="arow"><div class="g2"><div class="t2">Vault composition change</div><div class="s2">Ping me when a curator moves my money or raises leverage</div></div><div class="sw2" role="switch" aria-checked="false" tabindex="0"></div></div>
-              <div class="arow"><div class="g2"><div class="t2">LP out of range</div><div class="s2">Ping me when my Uniswap V4 liquidity stops earning</div></div><div class="sw2" role="switch" aria-checked="false" tabindex="0"></div></div>
-            </div>
-            <div>
-              <div class="g pad" style="margin-bottom:14px">
-                <div class="hd"><h3>Delivery</h3></div>
-                <div class="arow"><div class="g2"><div class="t2">Telegram</div><div class="s2">Connected as @bigoscrypt</div></div><span class="t ok">on</span></div>
-                <div class="arow"><div class="g2"><div class="t2">Email</div><div class="s2">Not connected</div></div><button class="btn gh sm">Connect</button></div>
-                <div class="arow"><div class="g2"><div class="t2">Push</div><div class="s2">Mobile app</div></div><button class="btn gh sm">Connect</button></div>
-              </div>
-          </div>
-        </section>
 
       </main>
 
@@ -1123,6 +1039,10 @@
         <button data-p="activity">
           <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8h3l2-4.5L9 12.5l2-4.5h3.5"/></svg>
           Activity
+        </button>
+        <button data-p="nfts">
+          <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.8" y="1.8" width="12.4" height="12.4" rx="2"/><path d="M1.8 10.5l3.4-3.2 3 2.8 2.3-2 3.7 3.4"/><circle cx="5.9" cy="5.4" r="1.1"/></svg>
+          NFTs
         </button>
         
       </nav>
@@ -1172,17 +1092,7 @@
 
   var OTHER = [];
 
-  var ASSETS = [
-    { name:'MON',   sym:'MO', img:'mon', a:'#836EF9', b:'#200052', sub:'Monad', bal:'214,900', px:'$0.02225', usd:4781, monLinked:true, priced:true },
-    { name:'shMON', sym:'SH', img:'shmonad', a:'#836EF9', b:'#4C1D95', sub:'ShMonad &middot; liquid staked', bal:'400,000', px:'$0.02285', usd:9140, monLinked:true, priced:true, note:'priced by redemption, not by pool' },
-    { name:'USDC',  sym:'US', img:'usdc', a:'#2775CA', b:'#1A5CA8', sub:'Circle &middot; native', bal:'6,120.00', px:'$1.00', usd:6120, priced:true },
-    { name:'USDT0', sym:'UT', img:'usdt', a:'#26A17B', b:'#1A7355', sub:'LayerZero OFT', bal:'2,480.00', px:'$1.00', usd:2480, priced:true },
-    { name:'WMON',  sym:'WM', img:'mon', a:'#6D28D9', b:'#3B0764', sub:'wrapped', bal:'48,200', px:'$0.02225', usd:1072, monLinked:true, priced:true },
-    { name:'aprMON', sym:'AP', img:'shmonad', a:'#836EF9', b:'#3B0764', sub:'aPriori \u00b7 liquid staked', bal:'96,400', px:'$0.02310', usd:2227, monLinked:true, priced:true },
-    { name:'CHOG',  sym:'CH', img:'kuru', a:'#A0055D', b:'#4C1D95', sub:'Monad ecosystem', bal:'420,000', px:'$0.00319', usd:1340, priced:true },
-    { name:'GIGACHAD', sym:'GI', a:'#3A3350', b:'#25203A', sub:'unpriced &middot; $412 liquidity', bal:'12,000,000', px:'&mdash;', usd:0, priced:false },
-    { name:'MOONBAG',  sym:'MB', a:'#3A3350', b:'#25203A', sub:'unpriced &middot; sell reverts, honeypot', bal:'880,000', px:'&mdash;', usd:0, priced:false }
-  ];
+  var ASSETS = [];
 
   var ACTS = [];
 
@@ -1376,38 +1286,7 @@
       : '<p class="sec" style="padding:14px 0">No transactions of that type.</p>';
   }
 
-  function renderTrades(filter) {
-    var list = TRADES.filter(function (t) { return filter === 'all' || t.side === filter; });
-    var tb = $('#trAll'); tb.innerHTML = '';
-    list.forEach(function (t) {
-      var up = t.pnl >= 0;
-      var tr = el('tr');
-      tr.innerHTML =
-        '<td><div class="as">' + av(t) + '<div><div class="nm">' + t.pair +
-          ' <span class="t ' + (t.side === 'LONG' ? 'ok' : 'dg') + '">' + t.side + ' ' + t.lev + '</span></div>' +
-          '<div class="sb">' + t.p + '</div></div></div></td>' +
-        '<td class="hide-m"><span class="sec">' + t.side + '</span></td>' +
-        '<td class="r hide-m">' + usd0(t.size) + '</td>' +
-        '<td class="r hide-m"><span class="sec">' + t.entry + '</span></td>' +
-        '<td class="r hide-m">' + t.mark + '</td>' +
-        '<td class="r" style="color:var(--' + (up ? 'safe' : 'danger') + ')">' +
-          (up ? '+' : '-') + usd(Math.abs(t.pnl)).slice(1) + '<div class="sec">' + t.pnlPct + '</div></td>';
-      tb.appendChild(tr);
-    });
-    var top = $('#trTop'); top.innerHTML = '';
-    TRADES.forEach(function (t) {
-      var up = t.pnl >= 0;
-      var tr = el('tr');
-      tr.innerHTML =
-        '<td><div class="as">' + av(t) + '<div><div class="nm">' + t.pair +
-          ' <span class="t ' + (t.side === 'LONG' ? 'ok' : 'dg') + '">' + t.lev + '</span></div>' +
-          '<div class="sb">' + t.p + '</div></div></div></td>' +
-        '<td class="r hide-m">' + usd0(t.size) + '</td>' +
-        '<td class="r" style="color:var(--' + (up ? 'safe' : 'danger') + ')">' + (up ? '+' : '-') +
-          usd(Math.abs(t.pnl)).slice(1) + '</td>';
-      top.appendChild(tr);
-    });
-  }
+  function renderTrades(){}
 
   function nftCard(n) {
     return '<div class="nft' + (n.valued ? '' : ' dim') + '">' +
@@ -1422,89 +1301,40 @@
         '</div>' +
       '</div></div>';
   }
-  function renderNfts(filter) {
-    var list = NFTS.filter(function (n) { return filter === 'all' ? true : n.valued; });
-    $('#nftGrid').innerHTML = list.map(nftCard).join('');
-    $('#nftTop').innerHTML = NFTS.slice(0, 3).map(nftCard).join('');
+  function renderNfts(nfts) {
+    var grid = $('#nftGrid'); if (!grid) return;
+    if (!nfts || !nfts.length) { grid.innerHTML = '<p class="sec">No NFTs found for this wallet in the recent window.</p>'; return; }
+    grid.innerHTML = nfts.map(function (n) {
+      var h = 0; for (var i=0;i<n.contract.length;i++) h=(h*31+n.contract.charCodeAt(i))>>>0;
+      var c1='hsl('+(h%360)+' 55% 42%)', c2='hsl('+((h*7)%360)+' 55% 26%)';
+      return '<div class="nft"><div style="aspect-ratio:1;display:grid;place-items:center;background:linear-gradient(135deg,'+c1+','+c2+')">'+
+        '<span style="font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.85)">#'+n.tokenId+'</span></div>'+
+        '<div class="nft-b"><div class="nft-n"><b>'+n.collection+'</b></div>'+
+        '<div class="nft-r"><span class="nft-bid">token #'+n.tokenId+'</span></div></div></div>';
+    }).join('');
   }
 
-  function renderRewards() {
-    var tb = $('#rwAll'); tb.innerHTML = '';
-    REWARDS.forEach(function (r) {
-      var tr = el('tr');
-      tr.innerHTML =
-        '<td><div class="as">' + av(r) + '<div><div class="nm">' + r.p + '</div>' +
-        '<div class="sb">' + r.what + '</div></div></div></td>' +
-        '<td class="hide-m"><span class="sec">' + r.what + '</span></td>' +
-        '<td class="r hide-m"><span class="sec">' + r.since + '</span></td>' +
-        '<td class="r" style="color:var(--safe)">' + usd(r.usd) + '</td>';
-      tb.appendChild(tr);
-    });
-    $('#rwTop').innerHTML = REWARDS.map(function (r) {
-      return '<div class="fi">' + av(r) +
-        '<div class="bd"><div class="ti">' + r.p + '</div><div class="mt">' + r.what + '</div></div>' +
-        '<div class="rt" style="color:var(--safe)">' + usd(r.usd) + '</div></div>';
+  function renderRewards(rewards) {
+    var tb = $('#rwAll'); if (!tb) return;
+    var c = $('#rwCount'); if (c) c.textContent = (rewards && rewards.length) ? (rewards.length + ' claimable') : 'None';
+    if (!rewards || !rewards.length) { tb.innerHTML = '<tr><td colspan="4"><span class="sec">No claimable rewards found for this wallet.</span></td></tr>'; return; }
+    tb.innerHTML = rewards.map(function(r){
+      return '<tr><td><div class="as">'+av({img:r.img,sym:'AA',a:'#9896FF',b:'#2EBAC6'})+
+        '<div><div class="nm">'+r.protocol+'</div><div class="sb">'+r.token+'</div></div></div></td>'+
+        '<td class="hide-m"><span class="sec">'+r.token+'</span></td>'+
+        '<td class="r hide-m"><span class="sec">&mdash;</span></td>'+
+        '<td class="r" style="color:var(--safe)">'+shortNum(r.amount)+' '+r.token+'</td></tr>';
     }).join('');
   }
 
   /* ---------- risk ---------- */
-  function renderLadder(px) {
-    var lad = $('#ladder'); lad.innerHTML = '';
-    LENDERS.slice().sort(function (a, b) { return hf(a, px) - hf(b, px); }).forEach(function (l, i) {
-      var h = hf(l, px), dead = h < 1, edge = !dead && h < 1.3;
-      var r = el('div', 'rung' + (dead ? ' dead' : (edge ? ' edge' : '')));
-      r.innerHTML =
-        '<div class="n">' + (dead ? '&#9679;' : (i + 1)) + '</div>' +
-        '<div class="w">' + l.name + (l.native ? ' <span class="t nat">native</span>' : '') + '</div>' +
-        '<div class="s">' + (dead ? 'LIQUIDATED' : 'HF ' + h.toFixed(2)) + '</div>' +
-        '<div class="br"><i style="width:' + Math.max(0, Math.min(100, ((h - 1) / 1.5) * 100)) + '%"></i></div>';
-      lad.appendChild(r);
-    });
+  function renderLadder(){}
 
-    var dead = LENDERS.filter(function (l) { return hf(l, px) < 1; }).length;
-    var vd = $('#vd');
-    if (dead) {
-      vd.className = 'vd bad';
-      vd.querySelector('.k').textContent = 'At this price';
-      $('#vdV').textContent = dead + ' of ' + LENDERS.length + ' positions liquidated';
-    } else {
-      vd.className = 'vd';
-      vd.querySelector('.k').textContent = 'Whole-book liquidation price';
-      $('#vdV').textContent = 'MON $' + bookLiqPx().toFixed(4) + ' (-' + ((1 - bookLiqPx() / SPOT) * 100).toFixed(0) + '%)';
-    }
-  }
-
-  function setPx(pct) {
-    var px = SPOT * (1 + pct / 100);
-    $('#pxNow').textContent = '$' + px.toFixed(5);
-    var d = $('#pxDelta');
-    d.textContent = pct === 0 ? 'spot' : (pct > 0 ? '+' : '') + pct + '% vs spot';
-    d.style.color = pct === 0 ? 'var(--ink-soft)' : (pct > 0 ? 'var(--safe)' : 'var(--danger)');
-    renderLadder(px);
-
-    $('#nwVal').textContent = usd(netWorth(px));
-    var worst = LENDERS.slice().sort(function (a, b) { return hf(a, px) - hf(b, px); })[0];
-    var wh = hf(worst, px);
-    $('#rsHf').textContent = wh < 1 ? '0.00' : wh.toFixed(2);
-    var strip = document.querySelector('.risk-strip');
-    strip.className = 'risk-strip' + (wh < 1.3 ? ' bad' : (wh < 1.8 ? ' warn' : ''));
-    var dead = LENDERS.filter(function (l) { return hf(l, px) < 1; }).length;
-    if (dead) {
-      $('#rsHead').textContent = dead + ' of ' + LENDERS.length + ' positions are liquidated at this price.';
-      $('#rsSub').textContent = 'One MON drawdown, five protocols. This is the cascade a per-position health factor cannot see.';
-    } else {
-      var room = ((1 - bookLiqPx() / SPOT) * 100).toFixed(0);
-      $('#rsHead').textContent = wh < 1.8
-        ? worst.name + ' is ' + room + '% from liquidating you.'
-        : 'Your book is healthy. MON can fall ' + room + '% before anything liquidates.';
-      $('#rsSub').textContent = 'The same MON collateral backs loans on 5 protocols, so they unwind together. Whole-book liquidation at MON $' + bookLiqPx().toFixed(4) + '.';
-    }
-  }
+  function setPx(){}
 
   /* ---------- routing ---------- */
-  var TITLES = { dash:'Dashboard', positions:'Positions', assets:'Assets', trades:'Trades', nfts:'NFTs',
-                 rewards:'Rewards', activity:'Activity', risk:'Risk console',
-                 xray:'Vault X-ray', alerts:'Alerts' };
+  var TITLES = { dash:'Dashboard', positions:'Positions', assets:'Assets',
+                 activity:'Activity', nfts:'NFTs', rewards:'Rewards' };
   var PAGES = Object.keys(TITLES);
 
   function go(p) {
@@ -1515,22 +1345,36 @@
     }
     $('#landing').classList.remove('on');
     $('#app').classList.add('on');
-    PAGES.forEach(function (k) { $('#p-' + k).classList.toggle('on', k === p); });
+    PAGES.forEach(function (k) { var el = $('#p-' + k); if (el) el.classList.toggle('on', k === p); });
     $$('[data-p]').forEach(function (b) {
       if (b.dataset.p in TITLES) b.setAttribute('aria-current', String(b.dataset.p === p));
     });
     $('#pgTitle').textContent = TITLES[p];
-    if (p === 'risk') setPx(parseInt($('#px').value, 10));
+
     var sc = document.querySelector('body[data-device="mobile"] .shell');
     if (sc) sc.scrollTop = 0; else window.scrollTo(0, 0);
   }
 
   $$('[data-p]').forEach(function (b) { b.addEventListener('click', function () { go(b.dataset.p); }); });
 
+  function short(v){ return v.length > 13 ? v.slice(0,6)+'\u2026'+v.slice(-4) : v; }
+  function inputError(msg){
+    [$('#addrIn'),$('#addrIn2')].forEach(function(i){ if(i){ i.style.borderColor='var(--danger)'; }});
+    var t = $('#addrErr');
+    if (!t){ t=el('div','',''); t.id='addrErr'; t.style.cssText='color:var(--danger);font-size:12.5px;margin-top:8px'; var f=$('#entryForm'); if(f&&f.parentNode) f.parentNode.insertBefore(t, f.nextSibling); }
+    if (t) t.textContent = msg;
+  }
+  function clearInputError(){
+    [$('#addrIn'),$('#addrIn2')].forEach(function(i){ if(i) i.style.borderColor=''; });
+    var t=$('#addrErr'); if(t) t.textContent='';
+  }
   function track(v) {
-    if (v) $('#wAddr').textContent = v.length > 13 ? v.slice(0, 6) + '\u2026' + v.slice(-4) : v;
+    v = (v||'').trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(v)) { inputError('Enter a valid Monad address (0x followed by 40 hex characters).'); return; }
+    clearInputError();
+    $('#wAddr').textContent = short(v);
     go('dash');
-    if (/^0x[a-fA-F0-9]{40}$/.test(v)) loadReal(v);
+    loadReal(v);
   }
   $('#entryForm').addEventListener('submit', function (e) {
     e.preventDefault(); track($('#addrIn').value.trim());
@@ -1538,8 +1382,6 @@
   $('#entryForm2').addEventListener('submit', function (e) {
     e.preventDefault(); track($('#addrIn2').value.trim());
   });
-  $('#demo').addEventListener('click', function () { track('0x188d586ddcf52439676ca21a244753fa19f9ea8e'); });
-  $('#navDemo').addEventListener('click', function () { track('0x188d586ddcf52439676ca21a244753fa19f9ea8e'); });
   $('#navCta').addEventListener('click', function () { $('#addrIn').focus(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
 
@@ -1643,6 +1485,9 @@
     $('#tAct').textContent = (data.activity||[]).length + (data.activity && data.activity.length===25 ? '+' : '');
     $('#tActM').textContent = 'recent transfers';
 
+    renderNfts(data.nfts || []);
+    renderRewards(data.rewards || []);
+
     // gas spent on Monad (real: tx count always, MON total when indexed)
     var gas = data.gas;
     var card = $('#gasCard');
@@ -1674,145 +1519,34 @@
   }
 
   function setLoading(on){
-    $('#nwVal').textContent = on ? 'Reading chain…' : $('#nwVal').textContent;
-    if (on) $('#nwVal').style.opacity = '.5'; else $('#nwVal').style.opacity = '';
+    var nw = $('#nwVal');
+    if (on){
+      nw.textContent = 'Reading chain\u2026'; nw.style.opacity = '.5';
+      ['#tTok','#tDefi','#tAct'].forEach(function(id){ var e=$(id); if(e){ e.textContent='\u2014'; }});
+      ['#tokTop','#posTop','#feedTop','#asAll'].forEach(function(id){ var e=$(id); if(e) e.innerHTML='<tr><td colspan="6"><span class="sec">Reading chain\u2026</span></td></tr>'; });
+    } else { nw.style.opacity=''; }
   }
 
   async function loadReal(address){
     setLoading(true);
-    try{
+    var data;
+    try {
       var r = await fetch('/api/portfolio?address=' + encodeURIComponent(address));
-      var data = await r.json();
+      data = await r.json();
       setLoading(false);
-      if (!r.ok){ $('#nwVal').textContent = data.error || 'Read failed'; return; }
-      applyReal(data);
-    }catch(e){ setLoading(false); $('#nwVal').textContent = 'Read failed'; }
+      if (!r.ok) { $('#nwVal').textContent = data.error || 'Read failed'; return; }
+    } catch (e) { setLoading(false); $('#nwVal').textContent = 'Read failed'; return; }
+    try { applyReal(data); }
+    catch (e) { console.error('render error:', e && e.message, e && e.stack); }
   }
 
-  // Hero: one card, cycling through what the tracker actually shows. It counts the
-  // net worth up on first paint, then advances a view every few seconds.
-  (function hero() {
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var TARGET = 70592.50;
-    var tabs = $('#ocTabs'), body = $('#ocBody'), bar = $('#ocBar');
-    if (!tabs) return;
-
-    function row(img, name, val, tag, good) {
-      return '<div class="oc-row"><img src="' + LOGO[img] + '" alt="" />' +
-        '<span class="n">' + name + '</span>' +
-        (tag ? '<span class="t nat">' + tag + '</span>' : '') +
-        '<span class="v"' + (good ? ' style="color:var(--safe)"' : '') + '>' + val + '</span></div>';
-    }
-
-    var VIEWS = [
-      { k:'Worth', html: function () {
-          return '<div class="oc-lbl">Net worth</div>' +
-            '<div class="oc-big" id="ocNw">' + usd(TARGET) + '</div>' +
-            '<div class="oc-sub">tokens, defi, trades, nfts and rewards</div>' +
-            '<svg class="oc-spark" viewBox="0 0 300 56" preserveAspectRatio="none">' +
-            '<defs><linearGradient id="ocg" x1="0" y1="0" x2="0" y2="1">' +
-            '<stop offset="0%" stop-color="#4FD99B" stop-opacity=".32"/>' +
-            '<stop offset="100%" stop-color="#4FD99B" stop-opacity="0"/></linearGradient></defs>' +
-            '<path id="ocArea" fill="url(#ocg)" d=""/>' +
-            '<path id="ocLine" fill="none" stroke="#4FD99B" stroke-width="2" stroke-linejoin="round" d=""/>' +
-            '<circle id="ocDot" r="3.2" fill="#4FD99B" opacity="0"/></svg>';
-        } },
-      { k:'Tokens', html: function () {
-          return '<div class="oc-lbl">Token holdings</div><div style="margin-top:8px">' +
-            row('shmonad', 'shMON', '$9,140') +
-            row('usdc', 'USDC', '$6,120') +
-            row('mon', 'MON', '$4,781') +
-            row('usdt', 'USDT0', '$2,480') + '</div>';
-        } },
-      { k:'DeFi', html: function () {
-          return '<div class="oc-lbl">DeFi positions</div><div style="margin-top:8px">' +
-            row('aave-v3', 'Aave V3', '$9,150') +
-            row('k3-capital', 'K3 Vault', '$12,340', 'x-ray') +
-            row('pendle', 'Pendle PT', '$4,180') +
-            row('uniswap-v4', 'Uniswap V4', '$3,260', 'LP') + '</div>';
-        } },
-      { k:'Trades', html: function () {
-          return '<div class="oc-lbl">Open trades</div><div style="margin-top:8px">' +
-            row('perpl', 'MON-PERP', '+$728', '5x', true) +
-            row('perpl', 'ETH-PERP', '-$332', '3x') +
-            row('leverup', 'BTC-PERP', '+$577', '10x', true) + '</div>';
-        } },
-      { k:'NFTs', html: function () {
-          return '<div class="oc-lbl">Collectibles</div>' +
-            '<div class="oc-sub" style="margin-top:4px">6 NFTs, valued at best bid, not floor</div>' +
-            '<div class="oc-nfts">' +
-              '<img src="' + LOGO['nft-molandaks'] + '" alt="" />' +
-              '<img src="' + LOGO['nft-thedaks'] + '" alt="" />' +
-              '<img src="' + LOGO['nft-chewy'] + '" alt="" />' +
-            '</div>';
-        } },
-      { k:'Rewards', html: function () {
-          return '<div class="oc-lbl">Claimable rewards</div>' +
-            '<div class="oc-big" style="color:var(--safe)">$412.38</div>' +
-            '<div class="oc-sub">unclaimed across 4 protocols</div>' +
-            '<div style="margin-top:10px">' +
-              row('aave-v3', 'Aave V3', '$186.20', null, true) +
-              row('uniswap-v4', 'Uniswap V4', '$124.05', null, true) +
-              row('curvance', 'Curvance', '$71.44', null, true) +
-            '</div>';
-        } }
-    ];
-
-    tabs.innerHTML = VIEWS.map(function (v, i) {
-      return '<button role="tab" aria-selected="' + (i === 0) + '">' + v.k + '</button>';
+  // Static hero preview: real asset logos, no fake numbers.
+  (function heroPreview(){
+    var rows = $('#heroRows'); if (!rows) return;
+    var demo = [['mon','MON'],['usdc','USDC'],['shmonad','shMON']];
+    rows.innerHTML = demo.map(function(d){
+      return '<div class="oc-row"><img src="'+LOGO[d[0]]+'" alt="" /><span class="n">'+d[1]+'</span><span class="v" style="opacity:.35">&mdash;</span></div>';
     }).join('');
-
-    var i = 0, timer = null;
-
-    function show(n) {
-      i = n;
-      body.innerHTML = '<div class="oc-view">' + VIEWS[i].html() + '</div>';
-      Array.prototype.forEach.call(tabs.children, function (b, k) {
-        b.setAttribute('aria-selected', String(k === i));
-      });
-      if (i === 0) countUp();
-      if (!reduce) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
-    }
-
-    function countUp() {
-      var pts = [42,38,40,33,36,28,31,24,27,20,23,17,20,13];
-      var line = $('#ocLine'), area = $('#ocArea'), dot = $('#ocDot'), nw = $('#ocNw');
-      if (!line) return;
-      function paint(k) {
-        var n = Math.max(2, Math.round(pts.length * k)), d = '';
-        for (var j = 0; j < n; j++) d += (j ? 'L' : 'M') + (j / (pts.length - 1) * 300).toFixed(1) + ' ' + pts[j];
-        var x = (n - 1) / (pts.length - 1) * 300;
-        line.setAttribute('d', d);
-        area.setAttribute('d', d + ' L' + x.toFixed(1) + ' 56 L0 56 Z');
-        dot.setAttribute('cx', x.toFixed(1));
-        dot.setAttribute('cy', pts[n - 1]);
-        dot.setAttribute('opacity', k > 0.05 ? 1 : 0);
-      }
-      if (reduce) { paint(1); return; }
-      var t0 = null;
-      requestAnimationFrame(function step(ts) {
-        if (!t0) t0 = ts;
-        var k = Math.min(1, (ts - t0) / 1200), e = 1 - Math.pow(1 - k, 3);
-        nw.textContent = usd(TARGET * e);
-        paint(e);
-        if (k < 1) requestAnimationFrame(step);
-      });
-    }
-
-    function play() {
-      if (reduce) return;
-      clearInterval(timer);
-      timer = setInterval(function () { show((i + 1) % VIEWS.length); }, 4000);
-    }
-
-    Array.prototype.forEach.call(tabs.children, function (b, k) {
-      b.addEventListener('click', function () { show(k); play(); });
-    });
-    $('#onecard').addEventListener('mouseenter', function () { clearInterval(timer); });
-    $('#onecard').addEventListener('mouseleave', play);
-
-    show(0);
-    play();
   })();
 
   var navbar = document.querySelector('.navbar');
