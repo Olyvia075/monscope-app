@@ -1,4 +1,7 @@
 {
+  "version": 2,
+  "buildCommand": "",
+  "outputDirectory": "public",
   "cleanUrls": true,
   "headers": [
     { "source": "/(.*)", "headers": [
