@@ -23,7 +23,8 @@ export default async function handler(req, res) {
     const approvals = approvalsRes.approvals || []
     const security = {
       approvals: approvals.length,
-      unlimited: approvals.filter(x => x.unlimited).length,
+      known: approvals.filter(x => x.risk === 'known').length,
+      unverified: approvals.filter(x => x.risk === 'unverified').length,
       scamApprovals: approvals.filter(x => x.flaggedScam).length,
       scamActivity: (activity || []).filter(x => x.flaggedScam).length,
       scanned: approvalsRes.scanned,

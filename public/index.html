@@ -1024,11 +1024,11 @@
         <section class="page" id="p-security">
           <div class="cols c-3" style="margin-bottom:14px">
             <div class="g pad tile"><div class="k">Live approvals</div><div class="v" id="secTotal">&mdash;</div><div class="m">tokens you've allowed</div></div>
-            <div class="g pad tile"><div class="k">Unlimited</div><div class="v wrn" id="secUnlim">&mdash;</div><div class="m">spend any amount</div></div>
-            <div class="g pad tile"><div class="k">Flagged</div><div class="v dngr" id="secFlag">&mdash;</div><div class="m">on a known-scam list</div></div>
+            <div class="g pad tile"><div class="k">Known protocols</div><div class="v good" id="secKnown">&mdash;</div><div class="m">safe, expected</div></div>
+            <div class="g pad tile"><div class="k">Needs review</div><div class="v wrn" id="secReview">&mdash;</div><div class="m">unverified or flagged</div></div>
           </div>
           <div class="g pad" style="margin-bottom:14px">
-            <p style="margin:0;color:var(--ink-mid);font-size:13px">Every token approval this wallet has granted, read from its full history. An approval lets a contract move that token on your behalf, which is how drainers steal funds. MonScope is read-only by default. If you want to remove one, <b>Revoke</b> connects your wallet only to send a single transaction that sets the allowance to zero. It can never move your funds, and only works for the wallet you are viewing.</p>
+            <p style="margin:0;color:var(--ink-mid);font-size:13px">Every token approval this wallet has granted, read from its full history. An approval lets a contract move that token on your behalf, which is how drainers steal funds. Approvals to known protocols like Uniswap or Aave are normal and needed to use them, so leave those alone. Focus on <b>unverified</b> spenders and anything <b>flagged</b>. MonScope is read-only by default; <b>Revoke</b> connects your wallet only to set that allowance to zero, and only for the wallet you are viewing.</p>
           </div>
           <div class="g pad">
             <div class="hd"><h3>Token approvals</h3></div>
@@ -1565,49 +1565,50 @@
 
 
   function renderSecurityBanner(data){
-    var sec = data.security || {};
-    var host = $('#secBanner');
-    if (!host) return;
-    var risk = (sec.scamApprovals||0)+(sec.scamActivity||0);
-    if (risk){
+    var sec=data.security||{}, host=$('#secBanner'); if(!host) return;
+    var scam=(sec.scamApprovals||0)+(sec.scamActivity||0);
+    if(scam){
       host.style.display=''; host.className='risk-strip bad';
-      host.innerHTML = '<div class="hf">!</div><div class="tx"><b>'+risk+' flagged interaction'+(risk>1?'s':'')+' found.</b>'+
-        '<div>This wallet has approvals or activity tied to a known-scam address. Review them now.</div></div><div class="go">Open Security &rarr;</div>';
-    } else if (sec.unlimited){
+      host.innerHTML='<div class="hf">!</div><div class="tx"><b>'+scam+' flagged interaction'+(scam>1?'s':'')+'.</b>'+
+        '<div>This wallet has approvals or activity tied to a known-scam address. Review and revoke.</div></div><div class="go">Open Security &rarr;</div>';
+    } else if(sec.unverified){
       host.style.display=''; host.className='risk-strip warn';
-      host.innerHTML = '<div class="hf">'+sec.unlimited+'</div><div class="tx"><b>'+sec.unlimited+' unlimited approval'+(sec.unlimited>1?'s':'')+'.</b>'+
-        '<div>Contracts can move these tokens without limit. Revoke any you do not recognise.</div></div><div class="go">Open Security &rarr;</div>';
+      host.innerHTML='<div class="hf">'+sec.unverified+'</div><div class="tx"><b>'+sec.unverified+' approval'+(sec.unverified>1?'s':'')+' to review.</b>'+
+        '<div>Unlimited approvals to spenders we could not verify. Known protocols like Uniswap are fine and left off this list.</div></div><div class="go">Open Security &rarr;</div>';
     } else { host.style.display='none'; }
   }
   function renderSecurity(data){
     var sec = data.security || {}, aps = data.approvals || [];
-    var setV = function(id,v){ var e=$(id); if(e) e.textContent=v; };
+    var setV=function(id,v){ var e=$(id); if(e) e.textContent=v; };
     setV('#secTotal', sec.scanned ? sec.approvals : '—');
-    setV('#secUnlim', sec.scanned ? sec.unlimited : '—');
-    setV('#secFlag', sec.scanned ? (sec.scamApprovals + sec.scamActivity) : '—');
+    setV('#secKnown', sec.scanned ? sec.known : '—');
+    setV('#secReview', sec.scanned ? (sec.unverified + sec.scamApprovals) : '—');
 
-    // nav badge = riskiest count
-    var badge = $('#secBadge'), risk = (sec.scamApprovals||0)+(sec.scamActivity||0);
-    if (badge){
-      if (risk){ badge.style.display=''; badge.textContent=risk; badge.style.background='color-mix(in srgb,var(--danger) 22%,transparent)'; badge.style.color='var(--danger)'; }
-      else if (sec.unlimited){ badge.style.display=''; badge.textContent=sec.unlimited; badge.style.background='color-mix(in srgb,var(--warn) 22%,transparent)'; badge.style.color='var(--warn)'; }
+    var badge=$('#secBadge');
+    if(badge){
+      if(sec.scamApprovals){ badge.style.display=''; badge.textContent=sec.scamApprovals; badge.style.background='color-mix(in srgb,var(--danger) 22%,transparent)'; badge.style.color='var(--danger)'; }
+      else if(sec.unverified){ badge.style.display=''; badge.textContent=sec.unverified; badge.style.background='color-mix(in srgb,var(--warn) 22%,transparent)'; badge.style.color='var(--warn)'; }
       else badge.style.display='none';
     }
 
-    var tb = $('#secAll'); if (!tb) return;
-    if (!sec.scanned){ tb.innerHTML = '<tr><td colspan="4"><span class="sec">Approval history needs the indexer; not available right now.</span></td></tr>'; return; }
-    if (!aps.length){ tb.innerHTML = '<tr><td colspan="4"><span class="sec">No live token approvals. Nothing to revoke.</span></td></tr>'; return; }
+    var tb=$('#secAll'); if(!tb) return;
+    if(!sec.scanned){ tb.innerHTML='<tr><td colspan="4"><span class="sec">Approval history needs the indexer; not available right now.</span></td></tr>'; return; }
+    if(!aps.length){ tb.innerHTML='<tr><td colspan="4"><span class="sec">No live token approvals. Nothing to review.</span></td></tr>'; return; }
     tb.innerHTML = aps.map(function(x){
-      var sp = x.spender.slice(0,6)+'…'+x.spender.slice(-4);
-      var risk = x.flaggedScam ? '<span class="t dg">flagged scam</span>' : (x.unlimited ? '<span class="t wn">unlimited</span>' : '<span class="t ok">limited</span>');
+      var sp = x.spenderLabel || (x.spender.slice(0,6)+'…'+x.spender.slice(-4));
+      var badge, showRevoke=true;
+      if(x.risk==='scam'){ badge='<span class="t dg">flagged scam</span>'; }
+      else if(x.risk==='known'){ badge='<span class="t ok">known protocol</span>'; showRevoke=false; }
+      else if(x.risk==='unverified'){ badge='<span class="t wn">unverified</span>'; }
+      else { badge='<span class="t mut">limited</span>'; showRevoke=false; }
       var amt = x.unlimited ? 'Unlimited' : shortNum(x.amount);
-      var rev = '<button data-revoke data-token="'+x.tokenAddress+'" data-spender="'+x.spender+'" data-sym="'+x.token+'" style="color:var(--accent);font-size:12px;margin-left:10px;font-weight:600">Revoke</button>';
-      return '<tr'+(x.flaggedScam?' style="background:color-mix(in srgb,var(--danger) 8%,transparent)"':'')+'>'+
+      var rev = showRevoke ? '<button data-revoke data-token="'+x.tokenAddress+'" data-spender="'+x.spender+'" data-sym="'+x.token+'" style="color:var(--accent);font-size:12px;margin-left:10px;font-weight:600">Revoke</button>' : '';
+      return '<tr'+(x.risk==='scam'?' style="background:color-mix(in srgb,var(--danger) 8%,transparent)"':'')+'>'+
         '<td><div class="as"><div class="av fb" style="background:linear-gradient(135deg,#836EF9,#200052)">'+(x.token||'?').slice(0,2).toUpperCase()+'</div>'+
-        '<div><div class="nm">'+x.token+'</div><div class="sb">'+x.tokenAddress.slice(0,10)+'…</div></div></div></td>'+
-        '<td class="hide-m"><span class="sec" style="font-family:var(--mono)">'+sp+'</span></td>'+
+        '<div><div class="nm">'+x.token+'</div><div class="sb" style="font-family:var(--mono)">'+sp+'</div></div></div></td>'+
+        '<td class="hide-m"><span class="sec" style="font-family:var(--mono)">'+x.spender.slice(0,10)+'…'+'</span></td>'+
         '<td class="r hide-m">'+amt+'</td>'+
-        '<td class="r">'+risk+rev+'</td></tr>';
+        '<td class="r">'+badge+rev+'</td></tr>';
     }).join('');
   }
 
