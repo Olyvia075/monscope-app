@@ -1,14 +1,30 @@
 import { getPortfolio } from '../lib/portfolio.mjs'
+import { getPositions } from '../lib/positions.mjs'
+import { getActivity } from '../lib/activity.mjs'
+import { getGas } from '../lib/gas.mjs'
 
 export default async function handler(req, res) {
   const address = (req.query?.address || '').trim()
   res.setHeader('Content-Type', 'application/json')
-  // read-the-chain-for-truth: short cache so numbers stay live but scrapes stay cheap
   res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=60')
   try {
-    const data = await getPortfolio(address)
-    data.asOf = Date.now()
-    res.status(200).end(JSON.stringify(data))
+    const [portfolio, positions, activity, gas] = await Promise.all([
+      getPortfolio(address),
+      getPositions(address).catch(() => []),
+      getActivity(address).catch(() => []),
+      getGas(address).catch(() => null),
+    ])
+    // net worth includes DeFi position net value, read live
+    const positionsNet = positions.reduce((s, p) => s + (p.netUsd || 0), 0)
+    res.status(200).end(JSON.stringify({
+      ...portfolio,
+      positions,
+      activity,
+      netWorth: portfolio.netWorth + positionsNet,
+      tokensNetWorth: portfolio.netWorth,
+      gas,
+      asOf: Date.now(),
+    }))
   } catch (e) {
     res.status(e.message === 'Not a valid address' ? 400 : 502)
        .end(JSON.stringify({ error: e.message || 'read failed' }))
