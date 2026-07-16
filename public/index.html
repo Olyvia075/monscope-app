@@ -285,6 +285,17 @@
     }
   }
 
+  /* faq */
+  .faqs{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .faq{border-radius:16px;padding:20px 22px;
+    background:rgba(255,255,255,.04);
+    backdrop-filter:blur(26px) saturate(175%);-webkit-backdrop-filter:blur(26px) saturate(175%);
+    border:1px solid rgba(255,255,255,.09);box-shadow:0 1px 0 0 rgba(255,255,255,.08) inset;}
+  :root[data-theme="light"] .faq{background:rgba(255,255,255,.62);border-color:rgba(22,18,31,.08);}
+  .faq b{display:block;font-size:15.5px;font-weight:640;margin-bottom:7px;letter-spacing:-.01em;}
+  .faq p{font-size:13.5px;line-height:1.6;color:var(--ink-mid);margin:0;}
+  @media(max-width:900px){.faqs{grid-template-columns:1fr;}}
+
   /* feature cards */
   .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
   .ft{
@@ -713,7 +724,7 @@
     <div class="nb-logo"><span class="mark"></span>MonScope</div>
     <div class="pill">
       <a href="#features">What it tracks</a>
-      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
       <a class="cta" id="navCta">Track a wallet</a>
     </div>
     <div class="nb-right"></div>
@@ -731,12 +742,9 @@
 
     <div class="stage">
       <div class="onecard" aria-hidden="true">
-        <div class="oc-body">
-          <div class="oc-lbl">Net worth</div>
-          <div class="oc-big" style="opacity:.35">$ &mdash;</div>
-          <div class="oc-sub">paste an address to see it live</div>
-          <div style="margin-top:14px" id="heroRows"></div>
-        </div>
+        <div class="oc-tabs" id="hTabs"></div>
+        <div class="oc-body" id="hBody"></div>
+        <div class="oc-bar"><i id="hBar"></i></div>
       </div>
     </div>
   </header>
@@ -781,7 +789,22 @@
       </div>
     </div>
 
-    <div class="band" id="pricing">
+    <div class="wrap2" id="faq">
+      <div class="sec-head">
+        <div class="eyebrow">Questions</div>
+        <h2>Good to know</h2>
+      </div>
+      <div class="faqs">
+        <div class="faq"><b>Is it safe?</b><p>Yes. MonScope is read-only. It never asks you to connect a wallet, approve a token, or sign anything, and there is no code path that can move your funds. Paste an address and it reads public chain data, nothing more.</p></div>
+        <div class="faq"><b>What does it track?</b><p>Token holdings, DeFi positions, open trades, NFTs, unclaimed rewards, recent activity and your total gas spent, all read live from Monad chain 143.</p></div>
+        <div class="faq"><b>Where do prices come from?</b><p>Anchors from CoinGecko and the long tail from Monad DEX liquidity. Anything we cannot price reliably is quarantined and never counted toward your net worth, so the number stays honest.</p></div>
+        <div class="faq"><b>Do I need an account?</b><p>No signup, no wallet connection, no token. Just paste any Monad address, or share one to look someone up.</p></div>
+        <div class="faq"><b>How current is it?</b><p>Balances and positions are read live on every load, not from a stale cache. Monad finalises in under a second, so what you see is essentially now.</p></div>
+        <div class="faq"><b>What does it cost?</b><p>Free while we are in early access.</p></div>
+      </div>
+    </div>
+
+    <div class="band" id="cta">
       <h2>Paste an address. See everything.</h2>
       <p>Free and open. No signup, no wallet connection, no catch.</p>
       <form class="entry" id="entryForm2" style="margin:0 auto;justify-content:center">
@@ -1493,7 +1516,10 @@
     var card = $('#gasCard');
     if (gas && card) {
       card.style.display = '';
-      if (gas.gasSpentMon != null) {
+      if (gas.isContract) {
+        $('#gasBig').textContent = 'Contract';
+        $('#gasSub').textContent = 'this is a contract account, it does not pay gas as a sender';
+      } else if (gas.gasSpentMon != null) {
         $('#gasBig').textContent = gas.gasSpentMon.toFixed(4) + ' MON';
         $('#gasSub').textContent = 'across ' + gas.txCount.toLocaleString() + ' transaction' + (gas.txCount===1?'':'s') + ' on Monad';
       } else {
@@ -1541,12 +1567,66 @@
   }
 
   // Static hero preview: real asset logos, no fake numbers.
-  (function heroPreview(){
-    var rows = $('#heroRows'); if (!rows) return;
-    var demo = [['mon','MON'],['usdc','USDC'],['shmonad','shMON']];
-    rows.innerHTML = demo.map(function(d){
-      return '<div class="oc-row"><img src="'+LOGO[d[0]]+'" alt="" /><span class="n">'+d[1]+'</span><span class="v" style="opacity:.35">&mdash;</span></div>';
-    }).join('');
+  // Animated landing preview: an illustration of the dashboard, cycling through
+  // views with a count-up. Representative sample, clearly a preview (not a wallet).
+  (function heroAnim(){
+    var tabs=$('#hTabs'), body=$('#hBody'), bar=$('#hBar');
+    if(!tabs) return;
+    var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var TARGET=48120.44;
+    function row(img,n,v,tag,good){
+      return '<div class="oc-row"><img src="'+LOGO[img]+'" alt="" /><span class="n">'+n+'</span>'+
+        (tag?'<span class="t nat">'+tag+'</span>':'')+
+        '<span class="v"'+(good?' style="color:var(--safe)"':'')+'>'+v+'</span></div>';
+    }
+    var VIEWS=[
+      {k:'Worth', html:function(){
+        return '<div class="oc-lbl">Net worth</div><div class="oc-big" id="hNw">$0.00</div>'+
+          '<div class="oc-sub">tokens, defi, activity, nfts, rewards</div>'+
+          '<svg class="oc-spark" id="hSpark" viewBox="0 0 300 56" preserveAspectRatio="none">'+
+          '<defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">'+
+          '<stop offset="0%" stop-color="#4FD99B" stop-opacity=".32"/>'+
+          '<stop offset="100%" stop-color="#4FD99B" stop-opacity="0"/></linearGradient></defs>'+
+          '<path id="hArea" fill="url(#hg)" d=""/><path id="hLine" fill="none" stroke="#4FD99B" stroke-width="2" stroke-linejoin="round" d=""/>'+
+          '<circle id="hDot" r="3.2" fill="#4FD99B" opacity="0"/></svg>';
+      }},
+      {k:'Tokens', html:function(){
+        return '<div class="oc-lbl">Token holdings</div><div style="margin-top:8px">'+
+          row('usdc','USDC','$10,124')+row('mon','MON','$4,598')+row('shmonad','shMON','$9,140')+'</div>';
+      }},
+      {k:'DeFi', html:function(){
+        return '<div class="oc-lbl">Positions</div><div style="margin-top:8px">'+
+          row('aave-v3','Aave V3','$9,150','HF 2.1')+row('uniswap-v4','Uniswap V4','$3,260','LP')+
+          row('pendle','Pendle PT','$4,180')+'</div>';
+      }}
+    ];
+    tabs.innerHTML=VIEWS.map(function(v,i){return '<button aria-selected="'+(i===0)+'">'+v.k+'</button>';}).join('');
+    var i=0,timer=null;
+    function paintSpark(k){
+      var pts=[42,38,40,33,36,28,31,24,27,20,23,17,20,13];
+      var line=$('#hLine'),area=$('#hArea'),dot=$('#hDot'); if(!line)return;
+      var n=Math.max(2,Math.round(pts.length*k)),d='';
+      for(var j=0;j<n;j++) d+=(j?'L':'M')+(j/(pts.length-1)*300).toFixed(1)+' '+pts[j];
+      var x=(n-1)/(pts.length-1)*300;
+      line.setAttribute('d',d); area.setAttribute('d',d+' L'+x.toFixed(1)+' 56 L0 56 Z');
+      dot.setAttribute('cx',x.toFixed(1)); dot.setAttribute('cy',pts[n-1]); dot.setAttribute('opacity',k>0.05?1:0);
+    }
+    function countUp(){
+      var nw=$('#hNw'); if(!nw) return;
+      if(reduce){ nw.textContent=usd(TARGET); paintSpark(1); return; }
+      var t0=null;
+      requestAnimationFrame(function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/1200),e=1-Math.pow(1-k,3);
+        nw.textContent=usd(TARGET*e); paintSpark(e); if(k<1)requestAnimationFrame(step); });
+    }
+    function show(n){
+      i=n; body.innerHTML='<div class="oc-view">'+VIEWS[i].html()+'</div>';
+      Array.prototype.forEach.call(tabs.children,function(b,k){b.setAttribute('aria-selected',String(k===i));});
+      if(i===0) countUp();
+      if(!reduce){ bar.style.animation='none'; void bar.offsetWidth; bar.style.animation=''; }
+    }
+    function play(){ if(reduce)return; clearInterval(timer); timer=setInterval(function(){show((i+1)%VIEWS.length);},3800); }
+    Array.prototype.forEach.call(tabs.children,function(b,k){ b.addEventListener('click',function(){show(k);play();}); });
+    show(0); play();
   })();
 
   var navbar = document.querySelector('.navbar');
