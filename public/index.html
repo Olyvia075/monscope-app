@@ -795,7 +795,7 @@
         <h2>Good to know</h2>
       </div>
       <div class="faqs">
-        <div class="faq"><b>Is it safe?</b><p>Yes. MonScope is read-only. It never asks you to connect a wallet, approve a token, or sign anything, and there is no code path that can move your funds. Paste an address and it reads public chain data, nothing more.</p></div>
+        <div class="faq"><b>Is it safe?</b><p>Yes. Tracking is fully read-only: paste an address and MonScope reads public chain data, no wallet connection. The only action that ever touches your wallet is optional revoking, which sends a single transaction to set a token allowance to zero. It can never move your funds.</p></div>
         <div class="faq"><b>What does it track?</b><p>Token holdings, DeFi positions, open trades, NFTs, unclaimed rewards, recent activity and your total gas spent, all read live from Monad chain 143.</p></div>
         <div class="faq"><b>Where do prices come from?</b><p>Anchors from CoinGecko and the long tail from Monad DEX liquidity. Anything we cannot price reliably is quarantined and never counted toward your net worth, so the number stays honest.</p></div>
         <div class="faq"><b>Do I need an account?</b><p>No signup, no wallet connection, no token. Just paste any Monad address, or share one to look someone up.</p></div>
@@ -855,6 +855,10 @@
       <button class="nav-i" data-p="rewards">
         <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.6l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.4l-3.8 2 .7-4.3-3.1-3 4.3-.6L8 1.6z"/></svg>
         Rewards
+      </button>
+      <button class="nav-i" data-p="security">
+        <svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5l5 2v4c0 3.2-2.1 5.6-5 6.5-2.9-.9-5-3.3-5-6.5v-4l5-2z"/><path d="M5.8 8l1.6 1.6L10.5 6.4"/></svg>
+        Security <span class="badge" id="secBadge" style="display:none"></span>
       </button>
 
 </aside>
@@ -922,6 +926,8 @@
             <div class="g pad tile"><div class="k">DeFi positions</div><div class="v" id="tDefi">&mdash;</div><div class="m" id="tDefiM">reading&hellip;</div></div>
             <div class="g pad tile"><div class="k">Activity, recent</div><div class="v" id="tAct">&mdash;</div><div class="m" id="tActM">transfers</div></div>
           </div>
+
+          <div class="risk-strip" id="secBanner" data-p="security" style="display:none;margin-bottom:14px"></div>
 
           <div class="cols c-2" style="margin-bottom:14px">
             <div class="g pad">
@@ -1014,6 +1020,24 @@
           </div>
         </section>
 
+        <!-- ---------------- SECURITY ---------------- -->
+        <section class="page" id="p-security">
+          <div class="cols c-3" style="margin-bottom:14px">
+            <div class="g pad tile"><div class="k">Live approvals</div><div class="v" id="secTotal">&mdash;</div><div class="m">tokens you've allowed</div></div>
+            <div class="g pad tile"><div class="k">Unlimited</div><div class="v wrn" id="secUnlim">&mdash;</div><div class="m">spend any amount</div></div>
+            <div class="g pad tile"><div class="k">Flagged</div><div class="v dngr" id="secFlag">&mdash;</div><div class="m">on a known-scam list</div></div>
+          </div>
+          <div class="g pad" style="margin-bottom:14px">
+            <p style="margin:0;color:var(--ink-mid);font-size:13px">Every token approval this wallet has granted, read from its full history. An approval lets a contract move that token on your behalf, which is how drainers steal funds. MonScope is read-only by default. If you want to remove one, <b>Revoke</b> connects your wallet only to send a single transaction that sets the allowance to zero. It can never move your funds, and only works for the wallet you are viewing.</p>
+          </div>
+          <div class="g pad">
+            <div class="hd"><h3>Token approvals</h3></div>
+            <table class="tbl"><thead><tr>
+              <th>Token</th><th class="hide-m">Spender</th><th class="r hide-m">Allowance</th><th class="r">Risk</th>
+            </tr></thead><tbody id="secAll"></tbody></table>
+          </div>
+        </section>
+
         <!-- ---------------- ACTIVITY ---------------- -->
         <section class="page" id="p-activity">
           <div class="g pad" id="gasCard" style="margin-bottom:14px;display:none">
@@ -1047,6 +1071,19 @@
         <!-- ---------------- ALERTS ---------------- -->
 
       </main>
+
+
+  <!-- revoke: optional, in-app confirm; the only tx MonScope can ever send -->
+  <div id="revokeOverlay" style="display:none;position:fixed;inset:0;z-index:80;background:rgba(6,4,14,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)">
+    <div class="g pad" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,92vw)">
+      <div class="hd"><h3 id="rvTitle">Revoke approval</h3><div class="sp"></div>
+        <button class="btn gh sm" id="rvClose">Close</button></div>
+      <p style="color:var(--ink-mid);font-size:13.5px;margin:0 0 14px" id="rvBody"></p>
+      <div id="rvStatus" style="font-size:13px;margin:0 0 12px;display:none"></div>
+      <button class="btn" id="rvGo" style="width:100%">Connect wallet &amp; revoke</button>
+      <p class="sec" style="margin:12px 0 0;font-size:11.5px">This sends a single transaction that sets the allowance to zero. It cannot move your funds. You approve it in your own wallet.</p>
+    </div>
+  </div>
 
       <!-- mobile tab bar -->
       <nav class="bottom-nav" id="tabs">
@@ -1357,7 +1394,7 @@
 
   /* ---------- routing ---------- */
   var TITLES = { dash:'Dashboard', positions:'Positions', assets:'Assets',
-                 activity:'Activity', nfts:'NFTs', rewards:'Rewards' };
+                 activity:'Activity', nfts:'NFTs', rewards:'Rewards', security:'Security' };
   var PAGES = Object.keys(TITLES);
 
   function go(p) {
@@ -1391,10 +1428,12 @@
     [$('#addrIn'),$('#addrIn2')].forEach(function(i){ if(i) i.style.borderColor=''; });
     var t=$('#addrErr'); if(t) t.textContent='';
   }
+  var CURRENT_ADDR = null;
   function track(v) {
     v = (v||'').trim();
     if (!/^0x[a-fA-F0-9]{40}$/.test(v)) { inputError('Enter a valid Monad address (0x followed by 40 hex characters).'); return; }
     clearInputError();
+    CURRENT_ADDR = v;
     $('#wAddr').textContent = short(v);
     go('dash');
     loadReal(v);
@@ -1469,6 +1508,109 @@
     if (all) all.innerHTML = activity.map(actItem).join('');
   }
 
+
+
+  // ---- optional connect-to-revoke ----
+  // Read-only stays default. This is the ONLY place MonScope sends a transaction,
+  // only on explicit user action, only approve(spender, 0). No connection library:
+  // it uses the wallet's own EIP-1193 provider.
+  var REV = { token:null, spender:null, symbol:null };
+  function rvStatus(msg, kind){
+    var e=$('#rvStatus'); if(!e) return; e.style.display='';
+    e.style.color = kind==='err' ? 'var(--danger)' : (kind==='ok' ? 'var(--safe)' : 'var(--ink-mid)');
+    e.textContent = msg;
+  }
+  function openRevoke(tokenAddr, spender, symbol){
+    REV = { token:tokenAddr, spender:spender, symbol:symbol };
+    $('#rvTitle').textContent = 'Revoke '+symbol+' approval';
+    $('#rvBody').innerHTML = 'You are about to revoke <b>'+symbol+'</b> access for spender <span style="font-family:var(--mono)">'+spender.slice(0,10)+'…'+spender.slice(-6)+'</span>. This sets its allowance to zero.';
+    $('#rvStatus').style.display='none';
+    var go=$('#rvGo'); go.disabled=false; go.textContent='Connect wallet & revoke';
+    $('#revokeOverlay').style.display='';
+  }
+  function closeRevoke(){ $('#revokeOverlay').style.display='none'; }
+  async function doRevoke(){
+    var eth = window.ethereum;
+    if(!eth){ rvStatus('No wallet detected. Install MetaMask or Rabby to revoke.', 'err'); return; }
+    var go=$('#rvGo'); go.disabled=true;
+    try{
+      rvStatus('Connecting wallet…');
+      var accounts = await eth.request({ method:'eth_requestAccounts' });
+      var from = (accounts[0]||'').toLowerCase();
+      var tracked = (CURRENT_ADDR||'').toLowerCase();
+      if(from !== tracked){ rvStatus('Connect the wallet you are viewing ('+tracked.slice(0,6)+'…'+tracked.slice(-4)+') to revoke its approvals.', 'err'); go.disabled=false; return; }
+      // ensure Monad (chain 143 = 0x8f)
+      try{ await eth.request({ method:'wallet_switchEthereumChain', params:[{ chainId:'0x8f' }] }); }
+      catch(e){ if(e && e.code===4902){ await eth.request({ method:'wallet_addEthereumChain', params:[{ chainId:'0x8f', chainName:'Monad', nativeCurrency:{name:'Monad',symbol:'MON',decimals:18}, rpcUrls:['https://rpc.monad.xyz'], blockExplorerUrls:['https://monadscan.com'] }] }); } else throw e; }
+      rvStatus('Confirm the transaction in your wallet…');
+      var data = '0x095ea7b3' + REV.spender.slice(2).toLowerCase().padStart(64,'0') + '0'.repeat(64);
+      var tx = await eth.request({ method:'eth_sendTransaction', params:[{ from: accounts[0], to: REV.token, data: data }] });
+      rvStatus('Revoked. Transaction '+tx.slice(0,10)+'… submitted.', 'ok');
+      go.textContent='Done';
+      // refresh the view after a moment so the approval drops off
+      setTimeout(function(){ closeRevoke(); if(CURRENT_ADDR) loadReal(CURRENT_ADDR); }, 2500);
+    }catch(e){
+      var m = (e && (e.message||e.toString())) || 'Revoke failed';
+      rvStatus(/reject|denied|4001/i.test(m) ? 'You cancelled the transaction.' : m.slice(0,140), 'err');
+      go.disabled=false;
+    }
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-revoke]');
+    if(b){ e.preventDefault(); openRevoke(b.dataset.token, b.dataset.spender, b.dataset.sym); }
+  });
+  $('#rvClose').addEventListener('click', closeRevoke);
+  $('#rvGo').addEventListener('click', doRevoke);
+  $('#revokeOverlay').addEventListener('click', function(e){ if(e.target===this) closeRevoke(); });
+
+
+  function renderSecurityBanner(data){
+    var sec = data.security || {};
+    var host = $('#secBanner');
+    if (!host) return;
+    var risk = (sec.scamApprovals||0)+(sec.scamActivity||0);
+    if (risk){
+      host.style.display=''; host.className='risk-strip bad';
+      host.innerHTML = '<div class="hf">!</div><div class="tx"><b>'+risk+' flagged interaction'+(risk>1?'s':'')+' found.</b>'+
+        '<div>This wallet has approvals or activity tied to a known-scam address. Review them now.</div></div><div class="go">Open Security &rarr;</div>';
+    } else if (sec.unlimited){
+      host.style.display=''; host.className='risk-strip warn';
+      host.innerHTML = '<div class="hf">'+sec.unlimited+'</div><div class="tx"><b>'+sec.unlimited+' unlimited approval'+(sec.unlimited>1?'s':'')+'.</b>'+
+        '<div>Contracts can move these tokens without limit. Revoke any you do not recognise.</div></div><div class="go">Open Security &rarr;</div>';
+    } else { host.style.display='none'; }
+  }
+  function renderSecurity(data){
+    var sec = data.security || {}, aps = data.approvals || [];
+    var setV = function(id,v){ var e=$(id); if(e) e.textContent=v; };
+    setV('#secTotal', sec.scanned ? sec.approvals : '—');
+    setV('#secUnlim', sec.scanned ? sec.unlimited : '—');
+    setV('#secFlag', sec.scanned ? (sec.scamApprovals + sec.scamActivity) : '—');
+
+    // nav badge = riskiest count
+    var badge = $('#secBadge'), risk = (sec.scamApprovals||0)+(sec.scamActivity||0);
+    if (badge){
+      if (risk){ badge.style.display=''; badge.textContent=risk; badge.style.background='color-mix(in srgb,var(--danger) 22%,transparent)'; badge.style.color='var(--danger)'; }
+      else if (sec.unlimited){ badge.style.display=''; badge.textContent=sec.unlimited; badge.style.background='color-mix(in srgb,var(--warn) 22%,transparent)'; badge.style.color='var(--warn)'; }
+      else badge.style.display='none';
+    }
+
+    var tb = $('#secAll'); if (!tb) return;
+    if (!sec.scanned){ tb.innerHTML = '<tr><td colspan="4"><span class="sec">Approval history needs the indexer; not available right now.</span></td></tr>'; return; }
+    if (!aps.length){ tb.innerHTML = '<tr><td colspan="4"><span class="sec">No live token approvals. Nothing to revoke.</span></td></tr>'; return; }
+    tb.innerHTML = aps.map(function(x){
+      var sp = x.spender.slice(0,6)+'…'+x.spender.slice(-4);
+      var risk = x.flaggedScam ? '<span class="t dg">flagged scam</span>' : (x.unlimited ? '<span class="t wn">unlimited</span>' : '<span class="t ok">limited</span>');
+      var amt = x.unlimited ? 'Unlimited' : shortNum(x.amount);
+      var rev = '<button data-revoke data-token="'+x.tokenAddress+'" data-spender="'+x.spender+'" data-sym="'+x.token+'" style="color:var(--accent);font-size:12px;margin-left:10px;font-weight:600">Revoke</button>';
+      return '<tr'+(x.flaggedScam?' style="background:color-mix(in srgb,var(--danger) 8%,transparent)"':'')+'>'+
+        '<td><div class="as"><div class="av fb" style="background:linear-gradient(135deg,#836EF9,#200052)">'+(x.token||'?').slice(0,2).toUpperCase()+'</div>'+
+        '<div><div class="nm">'+x.token+'</div><div class="sb">'+x.tokenAddress.slice(0,10)+'…</div></div></div></td>'+
+        '<td class="hide-m"><span class="sec" style="font-family:var(--mono)">'+sp+'</span></td>'+
+        '<td class="r hide-m">'+amt+'</td>'+
+        '<td class="r">'+risk+rev+'</td></tr>';
+    }).join('');
+  }
+
   function applyReal(data){
     // net worth = real priced tokens (positions/trades below stay sample for now)
     $('#nwVal').textContent = usd(data.netWorth);
@@ -1510,6 +1652,8 @@
 
     renderNfts(data.nfts || []);
     renderRewards(data.rewards || []);
+    renderSecurity(data);
+    renderSecurityBanner(data);
 
     // gas spent on Monad (real: tx count always, MON total when indexed)
     var gas = data.gas;
