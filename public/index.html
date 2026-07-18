@@ -1641,7 +1641,10 @@
       data.counts.unpriced + ' excluded as unpriced or spam.';
     $('#tTok').textContent = usd0(data.netWorth);
     document.querySelector('#tTok').nextElementSibling.textContent =
-      data.counts.priced + ' assets, ' + data.counts.unpriced + ' unpriced';
+      data.counts.priced + ' assets, ' + data.counts.unpriced + ' unpriced' +
+      // a very busy wallet can exceed the read budget; say so rather than
+      // letting a partial report look like a complete one
+      (data.incomplete ? ' · partial, this wallet is very active' : '');
 
     // rebuild the ASSETS array the existing renderers read from
     ASSETS.length = 0;
