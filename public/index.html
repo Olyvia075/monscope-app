@@ -1529,6 +1529,18 @@
     var hf = p.healthFactor;
     var hfTag = hf==null ? '' : ' <span class="t '+(hf<1.3?'dg':(hf<1.8?'wn':'ok'))+'">HF '+hf.toFixed(2)+'</span>';
     var av0 = av({ img:p.img, sym:(p.protocol||'?').slice(0,2).toUpperCase(), a:'#836EF9', b:'#200052' });
+    // a vault has no collateral/debt split, it has a deposit and a value
+    if (p.kind === 'vault'){
+      var amt = shortNum(p.underlyingAmount||0) + ' ' + (p.underlyingSymbol||'');
+      var val = p.netUsd==null ? '<span class="sec">not valued</span>' : usd(p.netUsd);
+      var head = '<td><div class="as">'+av0+'<div><div class="nm">'+p.protocol+'</div>'+
+        '<div class="sb">vault deposit</div></div></div></td>';
+      if (full) return '<tr>'+head+'<td class="hide-m"><span class="sec">vault</span></td>'+
+        '<td class="r hide-m">'+amt+'</td><td class="r hide-m"><span class="sec">&mdash;</span></td>'+
+        '<td class="r hide-m"><span class="sec">&mdash;</span></td><td class="r">'+val+'</td></tr>';
+      return '<tr>'+head+'<td class="r hide-m">'+amt+'</td>'+
+        '<td class="r hide-m"><span class="sec">&mdash;</span></td><td class="r">'+val+'</td></tr>';
+    }
     if (full) return '<tr><td><div class="as">'+av0+'<div><div class="nm">'+p.protocol+hfTag+'</div><div class="sb">'+p.kind+'</div></div></div></td>'+
       '<td class="hide-m"><span class="sec">'+p.kind+'</span></td>'+
       '<td class="r hide-m">'+usd(p.collateralUsd)+'</td><td class="r hide-m">'+usd(p.debtUsd)+'</td>'+
