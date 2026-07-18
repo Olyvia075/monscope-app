@@ -2,6 +2,7 @@ import { createServer } from 'http'
 import { readFile } from 'fs/promises'
 import { buildReport } from './lib/report.mjs'
 import { resolveImages } from './lib/nftmeta.mjs'
+import { getPositions } from './lib/positions.mjs'
 
 // Local mirror of the Netlify function, same shared assembly (lib/report.mjs).
 const server = createServer(async (req, res) => {
@@ -12,6 +13,22 @@ const server = createServer(async (req, res) => {
       const report = await buildReport((url.searchParams.get('address') || '').trim())
       res.statusCode = 200
       res.end(JSON.stringify(report))
+    } catch (e) {
+      res.statusCode = e.message === 'Not a valid address' ? 400 : 502
+      res.end(JSON.stringify({ error: e.message || 'read failed' }))
+    }
+    return
+  }
+  if (url.pathname === '/api/positions') {
+    res.setHeader('Content-Type', 'application/json')
+    try {
+      const positions = await getPositions((url.searchParams.get('address') || '').trim())
+      const positionsNet = positions.reduce((s, p) => s + (p.netUsd || 0), 0)
+      const accounted = positions
+        .filter(p => typeof p.netUsd === 'number' && p.receiptTokens)
+        .flatMap(p => p.receiptTokens)
+      res.statusCode = 200
+      res.end(JSON.stringify({ positions, positionsNet, accounted }))
     } catch (e) {
       res.statusCode = e.message === 'Not a valid address' ? 400 : 502
       res.end(JSON.stringify({ error: e.message || 'read failed' }))
