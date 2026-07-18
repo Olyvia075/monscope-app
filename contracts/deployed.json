@@ -1,0 +1,7 @@
+{
+  "network": "mainnet",
+  "chainId": 143,
+  "address": "0xc4962b14a4b495e3489d61c356b62513f3bcb6c8",
+  "explorer": "https://monadscan.com/address/0xc4962b14a4b495e3489d61c356b62513f3bcb6c8",
+  "deployedTx": "0x10435584b28c5fe12b85a1370a9d057e620f5d0f2d2e40ce8c92ad26935c5eb6"
+}

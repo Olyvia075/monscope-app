@@ -30,7 +30,10 @@ connection required. Read-only by default.
 tokens, spenders)` returns native balance, ERC-20 balances and approval
 allowances in a single `eth_call`. It also exposes a permissionless `attest`
 registry with a public `totalScans` counter for an onchain footprint. No owner,
-no admin, no upgrade key. Deployed address is written to `contracts/deployed.json`.
+no admin, no upgrade key.
+
+**Live on Monad mainnet (chain 143):**
+[`0xc4962b14a4b495e3489d61c356b62513f3bcb6c8`](https://monadscan.com/address/0xc4962b14a4b495e3489d61c356b62513f3bcb6c8)
 
 ## Architecture
 
