@@ -1488,20 +1488,40 @@
   }
 
   function actItem(r){
+    var kind = r.kind || (r.dir==='out'?'send':'receive');
+    var isValue = (kind==='send' || kind==='receive') && r.symbol;
     var sign = r.dir==='out' ? '-' : '+';
     var col = r.dir==='out' ? 'var(--danger)' : 'var(--safe)';
     var cp = (r.counterparty||'').slice(0,6)+'…'+(r.counterparty||'').slice(-4);
-    return '<div class="fi"><div class="ic2">'+
-      '<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">'+
-      (r.dir==='out'?'<path d="M3 8h10M9 4l4 4-4 4"/>':'<path d="M13 8H3M7 4L3 8l4 4"/>')+'</svg></div>'+
-      '<div class="bd"><div class="ti">'+sign+' '+shortNum(r.amount)+' '+r.symbol+'</div>'+
-      '<div class="mt">'+(r.dir==='out'?'to ':'from ')+cp+' · block '+r.block+'</div></div>'+
-      '<div class="rt" style="color:'+col+'">'+sign+shortNum(r.amount)+'</div></div>';
+    // icon: arrows for value moves, a small node glyph for contract calls/deploys
+    var icon = isValue
+      ? '<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">'+(r.dir==='out'?'<path d="M3 8h10M9 4l4 4-4 4"/>':'<path d="M13 8H3M7 4L3 8l4 4"/>')+'</svg>'
+      : '<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/><path d="M6 8h4"/></svg>';
+    var title, right='', rcol='var(--ink-mid)';
+    if (isValue){
+      var amtTxt = (r.amount>0 && r.amount<1e-6) ? 'dust' : shortNum(r.amount)+' '+r.symbol;
+      var rightTxt = (r.amount>0 && r.amount<1e-6) ? '~0' : sign+shortNum(r.amount);
+      title = (r.amount>0 && r.amount<1e-6) ? (sign==='+'?'received ':'sent ')+'dust '+r.symbol : sign+' '+amtTxt;
+      right = rightTxt; rcol = col;
+    } else if (kind==='deploy'){
+      title = 'Contract deployed';
+    } else {
+      title = (r.method ? r.method : 'Contract call');
+    }
+    var flags = '';
+    if (r.flaggedScam) flags += ' <span class="sec" style="color:var(--danger)">flagged</span>';
+    if (r.failed) flags += ' <span class="sec" style="color:var(--ink-mid)">failed</span>';
+    var when = r.ts ? new Date(r.ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : ('block '+r.block);
+    var rel = kind==='deploy' ? '' : (r.dir==='out'?'to ':'from ')+cp+' · ';
+    return '<div class="fi"><div class="ic2">'+icon+'</div>'+
+      '<div class="bd"><div class="ti">'+title+flags+'</div>'+
+      '<div class="mt">'+rel+when+'</div></div>'+
+      '<div class="rt" style="color:'+rcol+'">'+right+'</div></div>';
   }
   function renderActivityReal(activity){
     var top = $('#feedTop'), all = $('#feedAll');
     if (!activity.length){
-      var e = '<p class="sec" style="padding:12px 0">No recent token transfers for this wallet.</p>';
+      var e = '<p class="sec" style="padding:12px 0">No transactions found for this wallet on Monad.</p>';
       if (top) top.innerHTML = e; if (all) all.innerHTML = e; return;
     }
     if (top) top.innerHTML = activity.slice(0,6).map(actItem).join('');
@@ -1666,7 +1686,7 @@
         $('#gasSub').textContent = 'this is a contract account, it does not pay gas as a sender';
       } else if (gas.gasSpentMon != null) {
         $('#gasBig').textContent = gas.gasSpentMon.toFixed(4) + ' MON';
-        $('#gasSub').textContent = 'across ' + gas.txCount.toLocaleString() + ' transaction' + (gas.txCount===1?'':'s') + ' on Monad';
+        $('#gasSub').textContent = 'across ' + gas.txCount.toLocaleString() + ' transaction' + (gas.txCount===1?'':'s') + ' on Monad' + (gas.isDelegated ? ' · smart account (EIP-7702)' : '');
       } else {
         $('#gasBig').textContent = gas.txCount.toLocaleString();
         $('#gasSub').textContent = 'transactions sent on Monad';
