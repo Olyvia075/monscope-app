@@ -544,6 +544,13 @@
     display:flex;flex-direction:column;
   }
   .nft img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+  /* the generated gradient sits underneath as the fallback; real artwork fades
+     in on top once its metadata resolves, so a dead IPFS pin degrades quietly */
+  .nft-art{position:relative;aspect-ratio:1;display:grid;place-items:center;overflow:hidden;}
+  .nft-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    opacity:0;transition:opacity .25s ease;}
+  .nft-art img.on{opacity:1;}
+  .nft-art .nft-id{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.85);}
   .nft.dim img{filter:grayscale(.5) brightness(.72);}
   .nft-b{padding:11px 12px 12px;display:flex;flex-direction:column;gap:7px;}
   .nft-n{display:flex;align-items:baseline;gap:6px;min-width:0;}
@@ -1367,11 +1374,54 @@
     grid.innerHTML = nfts.map(function (n) {
       var h = 0; for (var i=0;i<n.contract.length;i++) h=(h*31+n.contract.charCodeAt(i))>>>0;
       var c1='hsl('+(h%360)+' 55% 42%)', c2='hsl('+((h*7)%360)+' 55% 26%)';
-      return '<div class="nft"><div style="aspect-ratio:1;display:grid;place-items:center;background:linear-gradient(135deg,'+c1+','+c2+')">'+
-        '<span style="font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.85)">#'+n.tokenId+'</span></div>'+
+      var k = n.contract.toLowerCase()+'-'+n.tokenId;
+      return '<div class="nft"><div class="nft-art" data-k="'+k+'" '+
+        'style="background:linear-gradient(135deg,'+c1+','+c2+')">'+
+        '<span class="nft-id">#'+n.tokenId+'</span></div>'+
         '<div class="nft-b"><div class="nft-n"><b>'+n.collection+'</b></div>'+
         '<div class="nft-r"><span class="nft-bid">token #'+n.tokenId+'</span></div></div></div>';
     }).join('');
+    loadNftArt(nfts, grid);
+  }
+
+  // Artwork is fetched after the grid is on screen, never before: metadata lives
+  // on IPFS gateways that are often slow or unreachable, and no NFT should be
+  // hidden waiting on one. Cards that never resolve keep their gradient.
+  function loadNftArt(nfts, grid) {
+    var items = nfts.slice(0, 48).map(function (n) {
+      return { contract: n.contract, tokenId: String(n.tokenId) };
+    });
+    if (!items.length) return;
+    fetch('/api/nft-images', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items })
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (!d || !d.images) return;
+        Object.keys(d.images).forEach(function (k) {
+          var url = d.images[k];
+          if (!url) return;
+          var slot = grid.querySelector('.nft-art[data-k="' + k + '"]');
+          if (!slot) return;
+          var img = new Image();
+          img.alt = '';
+          img.loading = 'lazy';
+          // The element must be in the document BEFORE src is set: a lazy image
+          // that is still detached never enters the viewport, so it never loads.
+          // It starts at opacity 0, so an image that fails is never seen.
+          var show = function () { img.className = 'on'; };
+          img.onload = show;
+          img.onerror = function () { img.remove(); };
+          slot.appendChild(img);
+          img.src = url;
+          // a cached image can finish before the load handler is live, which
+          // would leave it decoded but stuck at opacity 0
+          if (img.complete && img.naturalWidth > 0) show();
+        });
+      })
+      .catch(function () { /* artwork is optional; the list already rendered */ });
   }
 
   function renderRewards(rewards) {
@@ -1467,6 +1517,15 @@
 
 
   function posRowReal(p, full){
+    // a read we could not complete must not be drawn as a confident $0 position
+    if (p.unavailable){
+      var avU = av({ img:p.img, sym:(p.protocol||'?').slice(0,2).toUpperCase(), a:'#836EF9', b:'#200052' });
+      return '<tr><td><div class="as">'+avU+'<div><div class="nm">'+p.protocol+'</div>'+
+        '<div class="sb">could not read, try again</div></div></div></td>'+
+        '<td class="r hide-m"><span class="sec">&mdash;</span></td><td class="r hide-m"><span class="sec">&mdash;</span></td>'+
+        (full ? '<td class="r hide-m"><span class="sec">&mdash;</span></td><td class="r hide-m"><span class="sec">&mdash;</span></td>' : '')+
+        '<td class="r"><span class="sec">&mdash;</span></td></tr>';
+    }
     var hf = p.healthFactor;
     var hfTag = hf==null ? '' : ' <span class="t '+(hf<1.3?'dg':(hf<1.8?'wn':'ok'))+'">HF '+hf.toFixed(2)+'</span>';
     var av0 = av({ img:p.img, sym:(p.protocol||'?').slice(0,2).toUpperCase(), a:'#836EF9', b:'#200052' });
