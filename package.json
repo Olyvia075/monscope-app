@@ -1,18 +1,22 @@
 {
   "name": "monscope-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "MonScope — a read-only Monad portfolio and approvals tracker (chain 143).",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo no-build"
+    "dev": "node dev-server.mjs",
+    "build": "echo no-build",
+    "compile": "node scripts/compile.mjs",
+    "verify-lens": "node scripts/verify-lens.mjs",
+    "deploy": "node scripts/deploy.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["monad", "portfolio", "defi", "web3"],
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "viem": "^2.55.2"
+  },
+  "devDependencies": {
+    "solc": "0.8.28"
   },
   "engines": {
     "node": ">=20"
