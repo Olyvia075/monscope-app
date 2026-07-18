@@ -1363,7 +1363,7 @@
   }
   function renderNfts(nfts) {
     var grid = $('#nftGrid'); if (!grid) return;
-    if (!nfts || !nfts.length) { grid.innerHTML = '<p class="sec">No NFTs found for this wallet in the recent window.</p>'; return; }
+    if (!nfts || !nfts.length) { grid.innerHTML = '<p class="sec">No NFTs found for this wallet on Monad.</p>'; return; }
     grid.innerHTML = nfts.map(function (n) {
       var h = 0; for (var i=0;i<n.contract.length;i++) h=(h*31+n.contract.charCodeAt(i))>>>0;
       var c1='hsl('+(h%360)+' 55% 42%)', c2='hsl('+((h*7)%360)+' 55% 26%)';
